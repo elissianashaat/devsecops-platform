@@ -1,3 +1,7 @@
+# Load .env if it exists — never commit .env, use .env.example as the template
+-include .env
+export
+
 NAMESPACE_ARGOCD    := argocd
 NAMESPACE_ARC_RUNNERS := arc-runners
 
