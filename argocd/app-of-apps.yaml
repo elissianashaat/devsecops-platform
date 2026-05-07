@@ -1,0 +1,25 @@
+# The root Application. It watches argocd/apps/ in this repo and syncs every
+# Application manifest it finds there. Adding a new component = adding a file
+# to argocd/apps/ and pushing — ArgoCD picks it up automatically.
+#
+# Docs: https://argo-cd.readthedocs.io/en/stable/operator-manual/cluster-bootstrapping/
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/elissianashaat/devsecops-platform
+    targetRevision: HEAD
+    path: argocd/apps
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

@@ -1,0 +1,35 @@
+# sync-wave: "1" — waits for cert-manager (wave 0) to be healthy before syncing.
+# The ARC controller registers a ValidatingWebhookConfiguration which cert-manager
+# must be running to serve TLS certs for.
+# Docs: https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners-with-actions-runner-controller/quickstart-for-actions-runner-controller
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: arc-controller
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  finalizers:
+    - resources-finalizer.argocd.io
+spec:
+  project: default
+  sources:
+    - repoURL: ghcr.io/actions/actions-runner-controller-charts
+      chart: gha-runner-scale-set-controller
+      # Check latest: helm show chart oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set-controller
+      targetRevision: 0.9.3
+      helm:
+        valueFiles:
+          - $values/infra/arc-controller/values.yaml
+    - repoURL: https://github.com/elissianashaat/devsecops-platform
+      targetRevision: HEAD
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: arc-systems
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

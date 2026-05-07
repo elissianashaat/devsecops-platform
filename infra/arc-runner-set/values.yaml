@@ -1,0 +1,24 @@
+# Chart:      oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set
+# Values ref: https://github.com/actions/actions-runner-controller/blob/main/charts/gha-runner-scale-set/values.yaml
+# Docs:       https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners-with-actions-runner-controller/deploying-runner-scale-sets-with-actions-runner-controller
+
+githubConfigUrl: "https://github.com/elissianashaat/devsecops-platform"
+
+# Secret created separately (never committed) via: make create-github-secret
+githubConfigSecret: arc-github-app-secret
+
+minRunners: 0
+maxRunners: 5
+
+template:
+  spec:
+    containers:
+      - name: runner
+        image: ghcr.io/actions/actions-runner:latest
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
+          limits:
+            cpu: "1"
+            memory: "1Gi"

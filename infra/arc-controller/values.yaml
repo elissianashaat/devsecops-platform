@@ -1,0 +1,5 @@
+# Chart:      oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set-controller
+# Values ref: https://github.com/actions/actions-runner-controller/blob/main/charts/gha-runner-scale-set-controller/values.yaml
+# Docs:       https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners-with-actions-runner-controller/quickstart-for-actions-runner-controller
+
+# Defaults are production-appropriate; no overrides needed for local dev.

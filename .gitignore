@@ -7,3 +7,7 @@ PLAN.md
 !example.tfvars
 .env
 *.log
+
+# GitHub App private keys — never commit
+*.pem
+*.p8
