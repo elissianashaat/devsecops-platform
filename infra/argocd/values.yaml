@@ -1,0 +1,9 @@
+# Chart:      argo/argo-cd  (repo: https://argoproj.github.io/argo-helm)
+# Values ref: https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml
+# Docs:       https://argo-cd.readthedocs.io/en/stable/operator-manual/installation/
+# ArtifactHub:https://artifacthub.io/packages/helm/argo/argo-cd
+
+configs:
+  params:
+    # Disable TLS — UI is accessed via kubectl port-forward, not an ingress
+    server.insecure: "true"

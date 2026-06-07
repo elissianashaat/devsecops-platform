@@ -1,0 +1,35 @@
+# sync-wave: "2" — synced last; requires arc-controller (wave 1) to be running
+# and the arc-github-app-secret to exist in arc-runners namespace.
+# PREREQ: run `make create-github-secret` before ArgoCD attempts to sync this.
+# Docs: https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners-with-actions-runner-controller/deploying-runner-scale-sets-with-actions-runner-controller
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: arc-runner-set
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  finalizers:
+    - resources-finalizer.argocd.io
+spec:
+  project: default
+  sources:
+    - repoURL: ghcr.io/actions/actions-runner-controller-charts
+      chart: gha-runner-scale-set
+      # Check latest: helm show chart oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set
+      targetRevision: 0.9.3
+      helm:
+        valueFiles:
+          - $values/infra/arc-runner-set/values.yaml
+    - repoURL: https://github.com/elissianashaat/devsecops-platform
+      targetRevision: HEAD
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: arc-runners
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

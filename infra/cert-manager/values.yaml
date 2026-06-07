@@ -1,0 +1,5 @@
+# Chart:      https://charts.jetstack.io  (chart: cert-manager)
+# Values ref: https://github.com/cert-manager/cert-manager/blob/main/deploy/charts/cert-manager/values.yaml
+# Docs:       https://cert-manager.io/docs/installation/helm/
+
+installCRDs: true

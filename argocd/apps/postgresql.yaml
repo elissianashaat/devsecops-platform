@@ -1,0 +1,33 @@
+# sync-wave: "3" — deployed before SonarQube (wave 4) since SonarQube needs the DB to be ready
+# Deployed in the sonarqube namespace so both share the same network space.
+# Docs: https://artifacthub.io/packages/helm/bitnami/postgresql
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgresql
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+  finalizers:
+    - resources-finalizer.argocd.io
+spec:
+  project: default
+  sources:
+    - repoURL: https://charts.bitnami.com/bitnami
+      chart: postgresql
+      targetRevision: 18.7.2
+      helm:
+        valueFiles:
+          - $values/infra/postgresql/values.yaml
+    - repoURL: https://github.com/elissianashaat/devsecops-platform
+      targetRevision: HEAD
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: sonarqube
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

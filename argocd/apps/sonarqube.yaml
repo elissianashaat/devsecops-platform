@@ -1,0 +1,34 @@
+# sync-wave: "3" — deployed after ARC is healthy
+# The runner needs SonarQube to be up before the CI pipeline can gate on it.
+# Docs: https://docs.sonarsource.com/sonarqube-community-build/setup-and-upgrade/install-the-server/installing-sonarqube-on-kubernetes/
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sonarqube
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+  finalizers:
+    - resources-finalizer.argocd.io
+spec:
+  project: default
+  sources:
+    - repoURL: https://SonarSource.github.io/helm-chart-sonarqube
+      chart: sonarqube
+      # Check latest: helm search repo sonarqube/sonarqube --versions | head -5
+      targetRevision: 2026.3.1
+      helm:
+        valueFiles:
+          - $values/infra/sonarqube/values.yaml
+    - repoURL: https://github.com/elissianashaat/devsecops-platform
+      targetRevision: HEAD
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: sonarqube
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

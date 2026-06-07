@@ -1,0 +1,79 @@
+name: ci
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  trivy:
+    name: Trivy image scan
+    runs-on: arc-runner-set
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: set image name
+        run: echo "IMAGE=ghcr.io/${{ github.repository }}:${{ github.sha }}" >> $GITHUB_ENV
+
+      - name: log in to ghcr.io
+        # Uses the automatic GITHUB_TOKEN — no extra secrets needed
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: build image
+        run: docker build -t $IMAGE ./app
+
+      - name: scan image with trivy
+        # Docs: https://github.com/aquasecurity/trivy-action
+        # Blocks the pipeline — image is never pushed if HIGH or CRITICAL CVEs are found.
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: image
+          image-ref: ${{ env.IMAGE }}
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          format: table
+
+      - name: push image
+        # Only reached if trivy scan above exits 0 (no HIGH/CRITICAL CVEs)
+        run: docker push $IMAGE
+
+  sast:
+    name: SonarQube SAST
+    runs-on: arc-runner-set
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: install sonar-scanner
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y default-jre-headless unzip curl
+          curl -sSLo sonar-scanner.zip \
+            "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-6.2.1.4610-linux-x64.zip"
+          unzip -q sonar-scanner.zip
+          echo "$PWD/sonar-scanner-6.2.1.4610-linux-x64/bin" >> $GITHUB_PATH
+
+      - name: run sonar-scanner
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          sonar-scanner \
+            -Dsonar.host.url=http://sonarqube-sonarqube.sonarqube.svc.cluster.local:9000 \
+            -Dsonar.token=$SONAR_TOKEN \
+            -Dsonar.projectBaseDir=.
+
+      - name: check quality gate
+        # Docs: https://github.com/SonarSource/sonarqube-quality-gate-action
+        uses: SonarSource/sonarqube-quality-gate-action@v1.1.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: http://sonarqube-sonarqube.sonarqube.svc.cluster.local:9000

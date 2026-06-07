@@ -1,0 +1,27 @@
+# Chart:      sonarqube/sonarqube  (repo: https://SonarSource.github.io/helm-chart-sonarqube)
+# Values ref: https://github.com/SonarSource/helm-chart-sonarqube/blob/master/charts/sonarqube/values.yaml
+# Docs:       https://docs.sonarsource.com/sonarqube-community-build/setup-and-upgrade/install-the-server/installing-sonarqube-on-kubernetes/
+
+resources:
+  requests:
+    cpu: "400m"
+    memory: "1Gi"
+  limits:
+    cpu: "800m"
+    memory: "2Gi"
+
+persistence:
+  enabled: true
+  size: 5Gi
+
+# vm.max_map_count is already 262144 on this minikube node — no init container needed
+initSysctl:
+  enabled: false
+
+# Point to the standalone PostgreSQL deployed in the same namespace (wave 3).
+# Service DNS: {argocd-app-name}-postgresql.{namespace}.svc.cluster.local
+jdbcOverwrite:
+  enabled: true
+  jdbcUrl: "jdbc:postgresql://postgresql-postgresql.sonarqube.svc.cluster.local:5432/sonar"
+  jdbcUsername: "sonar"
+  jdbcPassword: "sonarpass"

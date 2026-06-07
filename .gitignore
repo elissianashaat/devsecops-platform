@@ -1,0 +1,16 @@
+PLAN.md
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+*.tfvars
+!example.tfvars
+.env
+*.log
+
+# Personal learning notes — local only
+LEARNING.md
+
+# GitHub App private keys — never commit
+*.pem
+*.p8

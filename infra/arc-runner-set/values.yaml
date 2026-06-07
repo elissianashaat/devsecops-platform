@@ -1,0 +1,37 @@
+# Chart:      oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set
+# Values ref: https://github.com/actions/actions-runner-controller/blob/main/charts/gha-runner-scale-set/values.yaml
+# Docs:       https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners-with-actions-runner-controller/deploying-runner-scale-sets-with-actions-runner-controller
+
+# The runner-set chart auto-discovers the controller SA by label — this breaks when
+# the controller isn't deployed yet (wave ordering). Setting it explicitly bypasses discovery.
+# SA name follows Helm convention: {release-name}-gha-rs-controller
+controllerServiceAccount:
+  namespace: arc-systems
+  name: arc-controller-gha-rs-controller
+
+githubConfigUrl: "https://github.com/elissianashaat/devsecops-platform"
+
+# Secret created separately (never committed) via: make create-github-secret
+githubConfigSecret: arc-github-app-secret
+
+# Docker-in-Docker: adds a Docker daemon sidecar so pipeline steps can run docker build/push.
+# Note: DinD requires privileged containers — scope OPA Gatekeeper's no-privileged policy
+# to exclude the arc-runners namespace (handled in Phase 5).
+containerMode:
+  type: "dind"
+
+minRunners: 0
+maxRunners: 5
+
+template:
+  spec:
+    containers:
+      - name: runner
+        image: ghcr.io/actions/actions-runner:latest
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
+          limits:
+            cpu: "1"
+            memory: "1Gi"

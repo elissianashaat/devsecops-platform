@@ -1,0 +1,23 @@
+name: test-self-hosted-runner
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: arc-runner-set
+    steps:
+      - name: confirm runner identity
+        run: |
+          echo "Runner name:   $RUNNER_NAME"
+          echo "Runner OS:     $RUNNER_OS"
+          echo "Hostname:      $(hostname)"
+          echo "Kernel:        $(uname -r)"
+          echo "Working dir:   $(pwd)"
+
+      - name: confirm we are inside kubernetes
+        run: |
+          echo "KUBERNETES_SERVICE_HOST=$KUBERNETES_SERVICE_HOST"
+          test -n "$KUBERNETES_SERVICE_HOST" && echo "Running inside a Kubernetes pod" || echo "NOT in Kubernetes"
